@@ -32,6 +32,7 @@
 #include "nrf_clock.h"
 #include "nrf_power.h"
 #include "nrfx_usbd_errata.h"
+#include "nrf_mbr.h"
 
 #ifdef SOFTDEVICE_PRESENT
 // For enable/disable hfclk with SoftDevice
@@ -48,6 +49,9 @@
 /*------------------------------------------------------------------*/
 /* MACRO TYPEDEF CONSTANT ENUM
  *------------------------------------------------------------------*/
+#define SD_MAGIC_NUMBER 0x51b1e5db
+#define SD_MAGIC_OK() (*((uint32_t*)(SOFTDEVICE_INFO_STRUCT_ADDRESS+4)) == 0x51b1e5db)
+
 enum
 {
   // Max allowed by USB specs
@@ -556,7 +560,9 @@ void USBD_IRQHandler(void)
 static bool is_sd_enabled(void)
 {
   uint8_t sd_en = false;
-  (void) sd_softdevice_is_enabled(&sd_en);
+  if (SD_MAGIC_OK()) {
+    (void) sd_softdevice_is_enabled(&sd_en);
+  }
   return sd_en;
 }
 #endif
